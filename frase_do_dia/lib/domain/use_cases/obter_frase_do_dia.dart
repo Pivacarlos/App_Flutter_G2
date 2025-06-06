@@ -1,5 +1,3 @@
-
-
 import 'package:frase_do_dia/data/repositories/frase_repository.dart';
 import 'package:frase_do_dia/domain/entities/frase.dart';
 

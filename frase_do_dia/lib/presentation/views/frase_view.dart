@@ -1,7 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/material.dart';
-import 'package:frase_do_dia/presentation/view_models/frase_view_model.dart';
+import '../view_models/frase_view_model.dart';
 
 class FraseView extends StatelessWidget {
   const FraseView({super.key});
@@ -18,10 +18,27 @@ class FraseView extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               child: viewModel.carregando
                   ? const CircularProgressIndicator()
-                  : Text(
-                      viewModel.frase?.texto ?? 'Clique no botão para ver a frase do dia.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18),
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          viewModel.fraseOriginal?.texto ?? '',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          viewModel.fraseTraduzida,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
                     ),
             ),
           ),
@@ -32,15 +49,13 @@ class FraseView extends StatelessWidget {
                 heroTag: 'copiar',
                 tooltip: 'Copiar frase',
                 onPressed: () async {
-                  final texto = viewModel.frase?.texto;
+                  final texto = viewModel.fraseOriginal?.texto;
                   if (texto != null && texto.isNotEmpty) {
                     Clipboard.setData(ClipboardData(text: texto));
                     await viewModel.salvarFraseNoHistorico(texto);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Frase copiada!')),
-                      );
-                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Frase copiada!')),
+                    );
                   }
                 },
                 child: const Icon(Icons.copy),

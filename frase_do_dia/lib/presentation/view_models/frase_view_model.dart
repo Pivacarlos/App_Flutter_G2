@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:translator/translator.dart';
 import '../../domain/entities/frase.dart';
 import '../../domain/use_cases/obter_frase_do_dia.dart';
 
 class FraseViewModel extends ChangeNotifier {
   final ObterFraseDoDia obterFraseDoDia;
 
-  Frase? _frase;
+  Frase? _fraseOriginal;
+  String _fraseTraduzida = '';
   bool _carregando = false;
   Color _corFundo = Colors.white;
   List<String> _historico = [];
 
-  Frase? get frase => _frase;
+  Frase? get fraseOriginal => _fraseOriginal;
+  String get fraseTraduzida => _fraseTraduzida;
   bool get carregando => _carregando;
   Color get corFundo => _corFundo;
   List<String> get historico => _historico;
@@ -25,10 +28,25 @@ class FraseViewModel extends ChangeNotifier {
     _carregando = true;
     notifyListeners();
 
-    _frase = await obterFraseDoDia();
+    try {
+      final frase = await obterFraseDoDia();
+      _fraseOriginal = frase;
+
+      final traduzida = await traduzirTexto(frase.texto);
+      _fraseTraduzida = traduzida;
+    } catch (_) {
+      _fraseOriginal = Frase(texto: 'Erro ao obter a frase.');
+      _fraseTraduzida = '';
+    }
 
     _carregando = false;
     notifyListeners();
+  }
+
+  Future<String> traduzirTexto(String texto) async {
+    final translator = GoogleTranslator();
+    final traducao = await translator.translate(texto, from: 'en', to: 'pt');
+    return traducao.text;
   }
 
   Future<void> alternarCorFundo() async {
