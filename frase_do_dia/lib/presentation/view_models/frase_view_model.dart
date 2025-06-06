@@ -49,10 +49,11 @@ class FraseViewModel extends ChangeNotifier {
     return traducao.text;
   }
 
-  Future<void> alternarCorFundo() async {
-    _corFundo = _corFundo == Colors.white ? Colors.blue.shade50 : Colors.white;
-    notifyListeners();
-    await _salvarCor();
+  Future<void> definirCorFundo(Color novaCor) async {
+  _corFundo = novaCor;
+  notifyListeners();
+  final prefs = await SharedPreferences.getInstance();
+  prefs.setInt('cor_fundo', novaCor.value);
   }
 
   Future<void> _salvarCor() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:provider/provider.dart';
 import '../view_models/frase_view_model.dart';
 
@@ -16,30 +17,49 @@ class FraseView extends StatelessWidget {
           body: Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: viewModel.carregando
-                  ? const CircularProgressIndicator()
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          viewModel.fraseOriginal?.texto ?? '',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+              child:
+                  viewModel.carregando
+                      ? const CircularProgressIndicator()
+                      : Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          viewModel.fraseTraduzida,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
-                          ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              viewModel.fraseOriginal?.texto?.isNotEmpty == true
+                                  ? viewModel.fraseOriginal!.texto
+                                  : 'Toque no botão para carregar a primeira frase!',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              viewModel.fraseTraduzida.isNotEmpty
+                                  ? viewModel.fraseTraduzida
+                                  : 'A tradução aparecerá aqui.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
             ),
           ),
           floatingActionButton: Column(
@@ -63,8 +83,41 @@ class FraseView extends StatelessWidget {
               const SizedBox(height: 12),
               FloatingActionButton(
                 heroTag: 'cor',
-                tooltip: 'Mudar cor de fundo',
-                onPressed: viewModel.alternarCorFundo,
+                tooltip: 'Escolher cor de fundo',
+                onPressed: () {
+                  Color corTemp = viewModel.corFundo;
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Escolha a cor de fundo'),
+                        content: SingleChildScrollView(
+                          child: ColorPicker(
+                            pickerColor: corTemp,
+                            onColorChanged: (cor) {
+                              corTemp = cor;
+                            },
+                            enableAlpha: false,
+                            displayThumbColor: true,
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancelar'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              viewModel.definirCorFundo(corTemp);
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Aplicar'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
                 child: const Icon(Icons.color_lens),
               ),
               const SizedBox(height: 12),
@@ -86,18 +139,19 @@ class FraseView extends StatelessWidget {
                       final frases = viewModel.historico.reversed.toList();
                       return AlertDialog(
                         title: const Text('Histórico de Frases'),
-                        content: frases.isEmpty
-                            ? const Text('Nenhuma frase copiada ainda.')
-                            : SizedBox(
-                                height: 200,
-                                width: 300,
-                                child: ListView.builder(
-                                  itemCount: frases.length,
-                                  itemBuilder: (_, i) => ListTile(
-                                    title: Text(frases[i]),
+                        content:
+                            frases.isEmpty
+                                ? const Text('Nenhuma frase copiada ainda.')
+                                : SizedBox(
+                                  height: 200,
+                                  width: 300,
+                                  child: ListView.builder(
+                                    itemCount: frases.length,
+                                    itemBuilder:
+                                        (_, i) =>
+                                            ListTile(title: Text(frases[i])),
                                   ),
                                 ),
-                              ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
